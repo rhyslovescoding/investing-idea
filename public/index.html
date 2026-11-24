@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Ticker Times</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #f4efe3; --ink: #1b1a17; --muted: #5e5a50; --rule: #1b1a17; --hair: #c9c1ad;
+    --up: #1f6b3a; --down: #a3262a; --tint: #ebe4d2;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --paper: #1c1b18; --ink: #ece6d6; --muted: #a39d8e; --rule: #ece6d6; --hair: #4a463d; --up: #6cc68b; --down: #f07a72; --tint: #26241f; }
+  }
+  :root[data-theme="dark"] { --paper: #1c1b18; --ink: #ece6d6; --muted: #a39d8e; --rule: #ece6d6; --hair: #4a463d; --up: #6cc68b; --down: #f07a72; --tint: #26241f; }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: "Source Serif 4", Georgia, serif; font-size: 16px; line-height: 1.5; }
+  a { color: inherit; }
+  .page { max-width: 1240px; margin: 0 auto; padding: 16px 24px 48px; }
+
+  /* masthead */
+  .topline { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 13px; color: var(--muted); border-bottom: 1px solid var(--hair); padding-bottom: 6px; }
+  .topline button { font: inherit; background: none; border: 1px solid var(--hair); color: var(--ink); padding: 2px 10px; cursor: pointer; }
+  .topline button:hover { border-color: var(--ink); }
+  h1.mast { font-family: "UnifrakturMaguntia", "Playfair Display", serif; font-weight: 400; font-size: clamp(44px, 9vw, 96px); text-align: center; margin: 10px 0 0; line-height: 1.05; letter-spacing: .5px; }
+  .motto { text-align: center; font-style: italic; color: var(--muted); font-size: 14px; margin: 4px 0 10px; }
+  .dateline { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; border-top: 3px double var(--rule); border-bottom: 3px double var(--rule); padding: 6px 0; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; }
+
+  /* ticker strip */
+  .strip { display: flex; gap: 22px; overflow-x: auto; padding: 8px 0; border-bottom: 1px solid var(--rule); font-size: 14px; white-space: nowrap; scrollbar-width: none; }
+  .strip b { font-weight: 600; margin-right: 6px; }
+  .up { color: var(--up); } .down { color: var(--down); }
+
+  .search { display: flex; gap: 8px; margin: 14px 0 0; }
+  .search input { flex: 1; min-width: 0; font: inherit; padding: 8px 10px; background: var(--paper); color: var(--ink); border: 1px solid var(--rule); text-transform: uppercase; }
+  .search button { font: inherit; font-weight: 600; padding: 8px 16px; background: var(--ink); color: var(--paper); border: 0; cursor: pointer; }
+  #lookup:empty { display: none; }
+  #lookup { margin-top: 14px; padding: 16px; border: 1px solid var(--rule); background: var(--tint); }
+
+  /* front page grid */
+  .front { display: grid; grid-template-columns: 1fr 1.7fr 1fr; gap: 0; margin-top: 18px; }
+  .front > section { padding: 0 18px; }
+  .front > section:first-child { padding-left: 0; }
+  .front > section:last-child { padding-right: 0; }
+  .front > section + section { border-left: 1px solid var(--hair); }
+  .section-head { font-family: "Playfair Display", serif; font-weight: 900; font-size: 15px; text-transform: uppercase; letter-spacing: 2px; border-top: 3px solid var(--rule); border-bottom: 1px solid var(--rule); padding: 4px 0; margin: 0 0 12px; display: flex; justify-content: space-between; align-items: baseline; }
+  .section-head small { font-family: "Source Serif 4", serif; font-weight: 400; letter-spacing: 0; text-transform: none; font-size: 12px; color: var(--muted); }
+
+  .story { padding-bottom: 14px; margin-bottom: 14px; border-bottom: 1px solid var(--hair); }
+  .story:last-child { border-bottom: 0; }
+  .kicker { font-size: 12px; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .story h3 { font-family: "Playfair Display", serif; font-weight: 700; font-size: 20px; line-height: 1.2; margin: 4px 0 6px; cursor: pointer; }
+  .story h3:hover { text-decoration: underline; }
+  .story p { margin: 0 0 8px; font-size: 15px; }
+  .byline { font-size: 12px; font-style: italic; color: var(--muted); margin-bottom: 6px; }
+
+  .lead h2 { font-family: "Playfair Display", serif; font-weight: 900; font-size: clamp(30px, 4vw, 44px); line-height: 1.08; margin: 6px 0 8px; }
+  .lead .deck { font-style: italic; font-size: 18px; color: var(--muted); margin: 0 0 10px; }
+  .lead .body { column-count: 2; column-gap: 22px; column-rule: 1px solid var(--hair); }
+  .lead .body p:first-child::first-letter { font-family: "Playfair Display", serif; font-weight: 900; float: left; font-size: 58px; line-height: .85; padding: 4px 6px 0 0; }
+  .lead .chart { border: 1px solid var(--hair); padding: 8px; margin: 6px 0 12px; }
+  .lead .chart figcaption { font-size: 12px; color: var(--muted); font-style: italic; margin-top: 4px; }
+  .second { margin-top: 18px; border-top: 1px solid var(--rule); padding-top: 12px; }
+  .second h2 { font-size: 28px; }
+
+  .signals { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+  .chip { font-size: 12px; border: 1px solid var(--hair); padding: 1px 7px; white-space: nowrap; }
+  .meter { display: flex; height: 6px; width: 100%; margin: 6px 0 2px; background: var(--hair); }
+  .meter i { display: block; height: 100%; }
+  .quote { border-left: 3px solid var(--ink); padding: 2px 0 2px 10px; margin: 8px 0; font-style: italic; font-size: 14px; break-inside: avoid; }
+  .quote cite { display: block; font-style: normal; font-size: 12px; color: var(--muted); }
+  .related { list-style: none; padding: 0; margin: 6px 0 0; font-size: 13px; }
+  .related li { padding: 3px 0; border-top: 1px dotted var(--hair); }
+  .related a { text-decoration: none; } .related a:hover { text-decoration: underline; }
+  details.more summary { cursor: pointer; font-size: 13px; color: var(--muted); }
+
+  /* lower sections */
+  .lower { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; margin-top: 28px; }
+  .lower > section { padding: 0 18px; }
+  .lower > section:first-child { padding-left: 0; }
+  .lower > section:last-child { padding-right: 0; }
+  .lower > section + section { border-left: 1px solid var(--hair); }
+  table.board { width: 100%; border-collapse: collapse; font-size: 14px; }
+  table.board td { padding: 4px 0; border-bottom: 1px dotted var(--hair); vertical-align: middle; }
+  table.board td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; padding-left: 8px; }
+  .bar { height: 8px; background: var(--ink); opacity: .75; }
+  .trend { margin-bottom: 12px; font-size: 14px; }
+  .trend b { font-family: "Playfair Display", serif; font-size: 16px; }
+
+  .wire { margin-top: 28px; }
+  .wire-cols { column-count: 3; column-gap: 26px; column-rule: 1px solid var(--hair); }
+  .wire-item { break-inside: avoid; padding: 0 0 10px; margin-bottom: 10px; border-bottom: 1px dotted var(--hair); }
+  .wire-item a { font-family: "Playfair Display", serif; font-weight: 700; font-size: 16px; line-height: 1.25; text-decoration: none; }
+  .wire-item a:hover { text-decoration: underline; }
+  .wire-item div { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  footer { margin-top: 30px; border-top: 3px double var(--rule); padding-top: 10px; font-size: 12px; color: var(--muted); }
+  footer .status { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 6px 0; }
+  .loading { text-align: center; padding: 80px 0; font-style: italic; color: var(--muted); font-size: 18px; }
+  .err { color: var(--down); }
+
+  @media (max-width: 960px) {
+    .front, .lower { grid-template-columns: 1fr 1fr; }
+    .front > section.center { grid-column: 1 / -1; order: -1; padding: 0 0 20px; border-left: 0; }
+    .front > section:nth-child(1) { padding-left: 0; border-left: 0; }
+    .lower > section:last-child { grid-column: 1 / -1; padding: 20px 0 0; border-left: 0; }
+    .wire-cols { column-count: 2; }
+  }
+  @media (max-width: 640px) {
+    .page { padding: 12px 16px 40px; }
+    .front, .lower { grid-template-columns: 1fr; }
+    .front > section, .lower > section { padding: 0 0 18px !important; border-left: 0 !important; }
+    .lead .body { column-count: 1; }
+    .wire-cols { column-count: 1; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="topline">
+    <span id="today"></span>
+    <span>
+      <button id="refresh" title="Pull a fresh edition from all sources">Stop the presses ↻</button>
+      <button id="theme" title="Toggle light/dark">Light / Dark</button>
+    </span>
+  </div>
+  <h1 class="mast">The Ticker Times</h1>
+  <div class="motto">All the market news that's fit to trade — reported by Reddit, StockTwits, Hacker News, Yahoo Finance &amp; the newswires</div>
+  <div class="dateline"><span id="edition">Morning Edition</span><span>Social Desk · Price Desk · Newswire</span><span>Price: Free</span></div>
+  <div class="strip" id="strip"></div>
+
+  <form class="search" id="search">
+    <input id="q" placeholder="Look up any ticker — e.g. TSLA" maxlength="10" autocomplete="off" aria-label="Ticker symbol">
+    <button>Investigate</button>
+  </form>
+  <div id="lookup"></div>
+
+  <main id="main"><div class="loading">The presses are rolling… gathering reports from Reddit, StockTwits, Yahoo Finance and the wires.</div></main>
+
+  <footer>
+    <div><b>Sources checked this edition:</b></div>
+    <div class="status" id="status"></div>
+    <p><b>Not financial advice.</b> The Ticker Times is an automated digest of public price data and social-media chatter. Social sentiment is noisy, easily manipulated and often wrong — do your own research before buying or selling anything.</p>
+    <p><b>How stories are ranked:</b> each stock gets a score from today's price move (45%), the StockTwits bull-vs-bear split (35%) and how fast Reddit mentions are growing versus yesterday (20%). Stocks with more social attention rank higher.</p>
+  </footer>
+</div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const safeUrl = (u) => (/^https?:\/\//i.test(u || "") ? esc(u) : "#");
+const pct = (p) => (p == null ? "—" : (p >= 0 ? "▲ " : "▼ ") + Math.abs(p).toFixed(2) + "%");
+const cls = (p) => (p == null ? "" : p >= 0 ? "up" : "down");
+const money = (n) => (n == null ? "—" : "$" + (n >= 1000 ? n.toLocaleString(undefined, { maximumFractionDigits: 0 }) : n.toFixed(2)));
+const big = (n) => (n >= 1e12 ? (n / 1e12).toFixed(1) + "T" : n >= 1e9 ? (n / 1e9).toFixed(1) + "B" : n >= 1e6 ? (n / 1e6).toFixed(1) + "M" : n?.toLocaleString() ?? "—");
+const ago = (d) => { const t = Date.parse(d); if (!t) return ""; const m = Math.round((Date.now() - t) / 60000); return m < 60 ? m + "m ago" : m < 1440 ? Math.round(m / 60) + "h ago" : Math.round(m / 1440) + "d ago"; };
+const clean = (n) => (n || "").replace(/\s+-\s+.*$/, "").replace(/,?\s+(Inc|Incorporated|Corp|Corporation|Co|Ltd|Limited|plc|PBC)\.?$/i, "");
+
+// theme
+try { const t = localStorage.getItem("tt-theme"); if (t) document.documentElement.dataset.theme = t; } catch {}
+$("#theme").onclick = () => {
+  const dark = document.documentElement.dataset.theme ? document.documentElement.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  document.documentElement.dataset.theme = dark ? "light" : "dark";
+  try { localStorage.setItem("tt-theme", document.documentElement.dataset.theme); } catch {}
+};
+$("#today").textContent = new Date().toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+
+function spark(vals, w = 300, h = 60) {
+  if (!vals || vals.length < 2) return "";
+  const lo = Math.min(...vals), hi = Math.max(...vals), r = hi - lo || 1;
+  const pts = vals.map((v, i) => `${(i / (vals.length - 1)) * w},${h - 4 - ((v - lo) / r) * (h - 8)}`).join(" ");
+  const c = vals[vals.length - 1] >= vals[0] ? "var(--up)" : "var(--down)";
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" preserveAspectRatio="none" role="img" aria-label="Price over the last month"><polyline points="${pts}" fill="none" stroke="${c}" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>`;
+}
+
+function meter(s) {
+  if (!(s.bull + s.bear)) return "";
+  const b = (s.bull / (s.bull + s.bear)) * 100;
+  return `<div class="meter" title="${s.bull} bullish vs ${s.bear} bearish StockTwits posts"><i style="width:${b}%;background:var(--up)"></i><i style="width:${100 - b}%;background:var(--down)"></i></div>`;
+}
+
+function chips(s) {
+  const c = [];
+  c.push(`<span class="chip ${cls(s.pct)}">Price ${pct(s.pct)}</span>`);
+  if (s.bull + s.bear) c.push(`<span class="chip">StockTwits ${s.bull}🐂 / ${s.bear}🐻</span>`);
+  if (s.mentions != null) c.push(`<span class="chip">Reddit ${s.mentions} mentions${s.buzzX ? ` (${s.buzzX}× vs yday)` : ""}</span>`);
+  if (s.stRank) c.push(`<span class="chip">#${s.stRank} trending</span>`);
+  if (s.volRatio >= 1.5) c.push(`<span class="chip">${s.volRatio.toFixed(1)}× normal volume</span>`);
+  return `<div class="signals">${c.join("")}</div>`;
+}
+
+function prose(s) {
+  const out = [];
+  if (s.stSummary) out.push(s.stSummary);
+  const parts = [];
+  parts.push(`Shares of ${esc(clean(s.name) || s.symbol)} (${esc(s.symbol)}) ${s.pct >= 0 ? "gained" : "lost"} ${Math.abs(s.pct ?? 0).toFixed(1)}% to ${money(s.price)} in the latest session${s.marketCap ? `, giving the company a market value near ${big(s.marketCap)}` : ""}.`);
+  if (s.bull + s.bear) parts.push(`On StockTwits, ${s.bull} of the most recent tagged posts were bullish against ${s.bear} bearish — ${s.sentiment > 0.25 ? "a decidedly optimistic crowd" : s.sentiment < -0.25 ? "a gloomy crowd" : "a divided crowd"}.`);
+  if (s.mentions != null) parts.push(`Across Reddit's investing forums the ticker drew ${s.mentions} mentions in the past day${s.mentionsPrev ? `, versus ${s.mentionsPrev} the day before` : ""}${s.buzzX >= 2 ? " — a sharp jump in attention" : ""}.`);
+  if (s.volRatio >= 1.5) parts.push(`Trading volume ran about ${s.volRatio.toFixed(1)} times its three-month average.`);
+  out.push(parts.join(" "));
+  return out.map((p, i) => `<p>${i === 0 && s.stSummary ? esc(p) : p}</p>`).join("");
+}
+
+function quotes(s, n = 2) {
+  return (s.posts || []).slice(0, n).map((p) => `<blockquote class="quote">“${esc(p.body)}”<cite>— @${esc(p.user)} on StockTwits${p.sentiment ? ` (${esc(p.sentiment)})` : ""}</cite></blockquote>`).join("");
+}
+
+function related(s, n = 3) {
+  if (!s.news?.length) return "";
+  return `<ul class="related">${s.news.slice(0, n).map((a) => `<li><a href="${safeUrl(a.link)}" target="_blank" rel="noopener">${esc(a.title)}</a> <span style="color:var(--muted)">· ${ago(a.date)}</span></li>`).join("")}</ul>`;
+}
+
+function leadStory(s, label, cssClass = "lead") {
+  return `<article class="story ${cssClass}">
+    <div class="kicker"><span>${label}</span><span>·</span><span>${esc(s.symbol)}</span><span class="${cls(s.pct)}">${pct(s.pct)}</span></div>
+    <h2>${esc(s.headline)}</h2>
+    <p class="deck">${s.sentiment != null ? `Social sentiment reads ${s.sentiment > 0 ? "+" : ""}${s.sentiment}` : "Social chatter is building"}; sources: ${esc(s.sources.join(", "))}.</p>
+    <div class="byline">By the Social Desk · ${new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</div>
+    ${s.spark ? `<figure class="chart" style="margin:6px 0 12px">${spark(s.spark)}<figcaption>${esc(s.symbol)}, last ${s.spark.length} sessions · now ${money(s.price)}</figcaption></figure>` : ""}
+    ${chips(s)}${meter(s)}
+    <div class="body">${prose(s)}${quotes(s, 2)}</div>
+    ${related(s, 4)}
+  </article>`;
+}
+
+function smallStory(s) {
+  return `<article class="story" data-sym="${esc(s.symbol)}">
+    <div class="kicker"><span>${esc(s.symbol)}</span><span class="${cls(s.pct)}">${pct(s.pct)}</span><span style="font-weight:400;color:var(--muted)">${money(s.price)}</span></div>
+    <h3 data-sym="${esc(s.symbol)}">${esc(s.headline)}</h3>
+    ${chips(s)}${meter(s)}
+    <details class="more"><summary>Read the full story</summary>${s.spark ? spark(s.spark, 300, 40) : ""}${prose(s)}${quotes(s, 1)}${related(s, 2)}</details>
+  </article>`;
+}
+
+function render(d) {
+  $("#edition").textContent = `${new Date(d.generatedAt).getHours() < 12 ? "Morning" : new Date(d.generatedAt).getHours() < 17 ? "Afternoon" : "Evening"} Edition · Updated ${new Date(d.generatedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`;
+  $("#strip").innerHTML = d.market.map((m) => `<span><b>${esc(m.label)}</b>${m.price?.toLocaleString(undefined, { maximumFractionDigits: 2 })} <span class="${cls(m.pct)}">${pct(m.pct)}</span></span>`).join("");
+
+  const top = d.rising[0], bottom = d.falling[0];
+  const maxMentions = Math.max(1, ...d.chatter.map((c) => c.mentions));
+
+  $("#main").innerHTML = `
+  <div class="front">
+    <section>
+      <h2 class="section-head">On the Rise <small>${d.rising.length} stocks</small></h2>
+      ${d.rising.slice(1).map(smallStory).join("") || "<p>No clear risers right now.</p>"}
+    </section>
+    <section class="center">
+      ${top ? leadStory(top, "Top Riser") : ""}
+      ${bottom ? `<div class="second">${leadStory(bottom, "Biggest Downfall")}</div>` : ""}
+    </section>
+    <section>
+      <h2 class="section-head">On the Downfall <small>${d.falling.length} stocks</small></h2>
+      ${d.falling.slice(1).map(smallStory).join("") || "<p>No clear decliners right now.</p>"}
+    </section>
+  </div>
+
+  <div class="lower">
+    <section>
+      <h2 class="section-head">Word on the Street <small>Reddit mentions, 24h</small></h2>
+      <table class="board">${d.chatter.map((c) => `<tr>
+        <td style="width:62px"><b>${esc(c.symbol)}</b></td>
+        <td><div class="bar" style="width:${(c.mentions / maxMentions) * 100}%"></div></td>
+        <td class="num">${c.mentions}</td>
+        <td class="num ${c.prev ? (c.mentions >= c.prev ? "up" : "down") : ""}">${c.prev ? (c.mentions >= c.prev ? "▲" : "▼") + Math.round(Math.abs(c.mentions - c.prev) / c.prev * 100) + "%" : "new"}</td>
+      </tr>`).join("")}</table>
+      <p style="font-size:12px;color:var(--muted)">Counted across r/wallstreetbets, r/stocks, r/investing and other investing subreddits.</p>
+    </section>
+    <section>
+      <h2 class="section-head">Trending on StockTwits</h2>
+      ${d.trending.slice(0, 7).map((t) => `<div class="trend"><b>#${t.rank} ${esc(t.symbol)}</b> <span style="color:var(--muted)">${esc(t.name)}</span><div>${esc((t.summary || "").slice(0, 220))}${(t.summary || "").length > 220 ? "…" : ""}</div></div>`).join("") || "<p>StockTwits unavailable.</p>"}
+    </section>
+    <section>
+      <h2 class="section-head">Letters from the Crowd</h2>
+      ${d.socialPosts.length ? d.socialPosts.slice(0, 8).map((p) => `<div class="wire-item"><a href="${safeUrl(p.link)}" target="_blank" rel="noopener">${esc(p.title)}</a><div>${esc(p.source)} · ${p.score} points · ${p.comments} comments</div></div>`).join("")
+        : [...d.rising, ...d.falling].flatMap((s) => (s.posts || []).slice(0, 1).map((p) => ({ ...p, sym: s.symbol }))).slice(0, 6).map((p) => `<blockquote class="quote">“${esc(p.body)}”<cite>— @${esc(p.user)} on $${esc(p.sym)}</cite></blockquote>`).join("")}
+    </section>
+  </div>
+
+  <section class="wire">
+    <h2 class="section-head">The Newswire <small>MarketWatch · Nasdaq · Seeking Alpha · Google News</small></h2>
+    <div class="wire-cols">${d.wire.map((w) => `<div class="wire-item"><a href="${safeUrl(w.link)}" target="_blank" rel="noopener">${esc(w.title)}</a><div>${esc(w.source)} · ${ago(w.date)}</div></div>`).join("")}</div>
+  </section>`;
+
+  $("#status").innerHTML = Object.entries(d.status).map(([k, v]) => `<span>${v.startsWith("ok") ? "✓" : "✗"} ${esc(k)}${v.startsWith("ok") ? "" : ` — <span class="err">${esc(v)}</span>`}</span>`).join("");
+
+  document.querySelectorAll("h3[data-sym]").forEach((h) => (h.onclick = () => h.parentElement.querySelector("details").toggleAttribute("open")));
+}
+
+async function load(fresh) {
+  $("#refresh").disabled = true;
+  try {
+    const r = await fetch("/api/edition" + (fresh ? "?fresh=1" : ""));
+    const d = await r.json();
+    if (d.error) throw new Error(d.error);
+    render(d);
+  } catch (e) {
+    $("#main").innerHTML = `<div class="loading err">The presses jammed: ${esc(e.message)}. Try again in a minute.</div>`;
+  } finally { $("#refresh").disabled = false; }
+}
+
+$("#refresh").onclick = () => load(true);
+$("#search").onsubmit = async (e) => {
+  e.preventDefault();
+  const sym = $("#q").value.trim().replace(/^\$/, "").toUpperCase();
+  if (!sym) return;
+  $("#lookup").innerHTML = `<p class="loading" style="padding:10px">Sending a reporter to look into ${esc(sym)}…</p>`;
+  try {
+    const s = await (await fetch("/api/stock/" + encodeURIComponent(sym))).json();
+    if (s.error) throw new Error(s.error);
+    const mixed = s.pct != null && Math.abs(s.score) > 0.05 && Math.sign(s.pct) !== Math.sign(s.score);
+    const verdict = mixed ? `<b>MIXED SIGNALS</b> — price ${s.pct >= 0 ? "up" : "down"}, but the social crowd leans ${s.score > 0 ? "bullish" : "bearish"}` : s.score > 0.05 ? `<b class="up">ON THE RISE</b>` : s.score < -0.05 ? `<b class="down">ON THE DOWNFALL</b>` : `<b>HOLDING STEADY</b>`;
+    $("#lookup").innerHTML = `<div style="display:flex;justify-content:space-between;font-size:13px"><span>Special Report · Verdict: ${verdict}</span><a href="#" id="closeLookup">close ✕</a></div>${leadStory(s, "Investigation")}`;
+    $("#closeLookup").onclick = (ev) => { ev.preventDefault(); $("#lookup").innerHTML = ""; };
+  } catch (err) { $("#lookup").innerHTML = `<p class="err">${esc(err.message)}</p>`; }
+};
+
+load();
+setInterval(() => load(), 5 * 60 * 1000);
+</script>
+</body>
+</html>
